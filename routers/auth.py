@@ -8,6 +8,8 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 import os
 
+from streamlit import user
+
 from database import get_db
 import models, schemas
 
@@ -52,7 +54,9 @@ async def signup(user: schemas.UserCreate, db: AsyncSession = Depends(get_db)):
     db_user = result.scalars().first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
+
+
     hashed_password = pwd_context.hash(user.password)
     new_user = models.User(email=user.email, password_hash=hashed_password)
     db.add(new_user)

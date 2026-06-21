@@ -35,7 +35,7 @@ async def process_reminders():
                 Todo.is_completed == False,
                 Todo.telegram_enabled == True,
                 UserTelegram.is_active == True,
-                Todo.due_date <= datetime.utcnow()
+                Todo.due_date <= datetime.now()
             )
         )
         
@@ -47,7 +47,7 @@ async def process_reminders():
                 print(f"Sending reminder for: {todo.title} to {user_telegram.telegram_chat_id}")
                 payload = {
                     "chat_id": user_telegram.telegram_chat_id,
-                    "text": f"⏰ *Todo Reminder*:\n\n*{todo.title}* is due!\n\n📅 Due Date: {todo.due_date.strftime('%Y-%m-%d %H:%M:%S') if todo.due_date else ''}",
+                    "text": f"⏰ *Todo Reminder*:\n\n*{todo.title}* is due!\n\n📅 Due Date: {todo.due_date.strftime('%Y-%m-%d %I:%M %p') if todo.due_date else ''}",
                     "parse_mode": "Markdown"
                 }
                 
