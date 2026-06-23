@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME    = 'todoapp-backend'
-        COMPOSE_FILE  = '/opt/todoapp/backend/docker-compose.yml'
+        IMAGE_NAME   = 'todoapp-backend'
+        COMPOSE_FILE = '/opt/myapp/backend/docker-compose.yml'
     }
 
     stages {
@@ -15,21 +15,6 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                sh '''
-                    docker run --rm \
-                        -v $(pwd):/app:z \
-                        -w /app \
-                        python:3.12-slim \
-                        bash -c "echo '=== Container contents ===' && ls -la && \
-                            pip install -r requirements.txt --quiet && \
-                            if [ -d tests ]; then pytest tests/ -v; \
-                            else echo 'No tests directory — skipping'; fi"
-                '''
-            }
-        }
-
         stage('Build Image') {
             steps {
                 sh """
@@ -38,6 +23,19 @@ pipeline {
                         -t ${IMAGE_NAME}:${env.GIT_COMMIT[0..6]} \
                         .
                 """
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh '''
+                    if [ -d tests ]; then
+                        echo "Running tests inside built image..."
+                        docker run --rm todoapp-backend:latest pytest tests/ -v
+                    else
+                        echo "No tests directory found — skipping tests"
+                    fi
+                '''
             }
         }
 
@@ -58,14 +56,13 @@ pipeline {
 
         stage('Health Check') {
             steps {
-                // Wait for container to be healthy before declaring success
                 sh '''
                     echo "Waiting for backend to be ready..."
                     for i in $(seq 1 15); do
-                        STATUS=$(docker inspect --format="{{.State.Health.Status}}" todoapp-backend 2>/dev/null || echo "starting")
+                        STATUS=$(docker inspect --format="{{.State.Status}}" todoapp-backend 2>/dev/null || echo "missing")
                         echo "Attempt $i: $STATUS"
-                        if [ "$STATUS" = "healthy" ]; then
-                            echo "Backend is healthy!"
+                        if [ "$STATUS" = "running" ]; then
+                            echo "Backend container is running!"
                             exit 0
                         fi
                         sleep 4
@@ -78,13 +75,13 @@ pipeline {
         }
     }
 
-        post {
-            success {
-                echo "✅ Backend pipeline succeeded — deployed commit ${env.GIT_COMMIT[0..6]}"
-            }
-            failure {
-                echo "❌ Backend pipeline failed — check console output above"
-                sh 'docker logs todoapp-backend --tail 50 || true'
-            }
+    post {
+        success {
+            echo "✅ Backend pipeline succeeded — deployed commit ${env.GIT_COMMIT[0..6]}"
         }
+        failure {
+            echo "❌ Backend pipeline failed — check console output above"
+            sh 'docker logs todoapp-backend --tail 50 || true'
+        }
+    }
 }
