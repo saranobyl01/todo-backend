@@ -18,15 +18,19 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    python3 -m venv .venv
-                    . .venv/bin/activate
-                    pip install -r requirements.txt --quiet
-                    # Run tests if tests/ directory exists
-                    if [ -d "tests" ]; then
-                        pytest tests/ -v
-                    else
-                        echo "No tests directory found — skipping tests"
-                    fi
+                    # Run tests inside a Python 3.12 container — same environment as production
+                    docker run --rm \
+                        -v $(pwd):/app \
+                        -w /app \
+                        python:3.12-slim \
+                        bash -c "
+                            pip install -r requirements.txt --quiet &&
+                            if [ -d tests ]; then
+                                pytest tests/ -v
+                            else
+                                echo 'No tests directory — skipping'
+                            fi
+                        "
                 '''
             }
         }
@@ -79,17 +83,13 @@ pipeline {
         }
     }
 
-    post {
-        success {
-            echo "✅ Backend pipeline succeeded — deployed commit ${env.GIT_COMMIT[0..6]}"
+        post {
+            success {
+                echo "✅ Backend pipeline succeeded — deployed commit ${env.GIT_COMMIT[0..6]}"
+            }
+            failure {
+                echo "❌ Backend pipeline failed — check console output above"
+                sh 'docker logs todoapp-backend --tail 50 || true'
+            }
         }
-        failure {
-            echo "❌ Backend pipeline failed — check console output above"
-            sh 'docker logs todoapp-backend --tail 50 || true'
-        }
-        always {
-            // Clean up the virtual env created during test stage
-            sh 'rm -rf .venv || true'
-        }
-    }
 }
