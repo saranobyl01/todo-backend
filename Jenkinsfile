@@ -18,19 +18,16 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    # Run tests inside a Python 3.12 container — same environment as production
+                    echo "=== Host workspace contents ==="
+                    ls -la $(pwd)
+                    echo "=== Running container ==="
                     docker run --rm \
                         -v $(pwd):/app \
                         -w /app \
                         python:3.12-slim \
-                        bash -c "
-                            pip install -r requirements.txt --quiet &&
-                            if [ -d tests ]; then
-                                pytest tests/ -v
-                            else
-                                echo 'No tests directory — skipping'
-                            fi
-                        "
+                        bash -c "echo '=== Container /app contents ===' && ls -la /app && pip install -r requirements.txt --quiet && \
+                            if [ -d tests ]; then pytest tests/ -v; \
+                            else echo 'No tests directory — skipping'; fi"
                 '''
             }
         }
