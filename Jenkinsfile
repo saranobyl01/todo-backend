@@ -18,14 +18,12 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    echo "=== Host workspace contents ==="
-                    ls -la $(pwd)
-                    echo "=== Running container ==="
                     docker run --rm \
-                        -v $(pwd):/app \
+                        -v $(pwd):/app:z \
                         -w /app \
                         python:3.12-slim \
-                        bash -c "echo '=== Container /app contents ===' && ls -la /app && pip install -r requirements.txt --quiet && \
+                        bash -c "echo '=== Container contents ===' && ls -la && \
+                            pip install -r requirements.txt --quiet && \
                             if [ -d tests ]; then pytest tests/ -v; \
                             else echo 'No tests directory — skipping'; fi"
                 '''
