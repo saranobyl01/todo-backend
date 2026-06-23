@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME    = 'myapp-backend'
-        COMPOSE_FILE  = '/opt/myapp/backend/docker-compose.yml'
+        IMAGE_NAME    = 'todoapp-backend'
+        COMPOSE_FILE  = '/opt/todoapp/backend/docker-compose.yml'
     }
 
     stages {
@@ -63,7 +63,7 @@ pipeline {
                 sh '''
                     echo "Waiting for backend to be ready..."
                     for i in $(seq 1 15); do
-                        STATUS=$(docker inspect --format="{{.State.Health.Status}}" myapp-backend 2>/dev/null || echo "starting")
+                        STATUS=$(docker inspect --format="{{.State.Health.Status}}" todoapp-backend 2>/dev/null || echo "starting")
                         echo "Attempt $i: $STATUS"
                         if [ "$STATUS" = "healthy" ]; then
                             echo "Backend is healthy!"
@@ -72,7 +72,7 @@ pipeline {
                         sleep 4
                     done
                     echo "Health check timed out — check container logs"
-                    docker logs myapp-backend --tail 30
+                    docker logs todoapp-backend --tail 30
                     exit 1
                 '''
             }
@@ -85,7 +85,7 @@ pipeline {
         }
         failure {
             echo "❌ Backend pipeline failed — check console output above"
-            sh 'docker logs myapp-backend --tail 50 || true'
+            sh 'docker logs todoapp-backend --tail 50 || true'
         }
         always {
             // Clean up the virtual env created during test stage
