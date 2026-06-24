@@ -3,9 +3,9 @@ pipeline {
 
     environment {
         APP_DIR = '/opt/app/backend'
-        DEPLOY_USER = 'saranobyl'          // your non-root VPS user
-        VPS_HOST = '62.171.132.180'
-        SSH_PORT = '2508'
+        DEPLOY_USER = 'saranobyl'        // your non-root VPS sudo user
+        VPS_HOST = '62.171.132.180'        // your VPS IP address
+        SSH_PORT = '2508'      // your custom SSH port
     }
 
     stages {
