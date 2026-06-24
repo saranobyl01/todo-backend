@@ -10,7 +10,7 @@ app = FastAPI(title="Todo App API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://todo.vbuds.net", "https://www.todo.vbuds.net"], # Update for production
+    allow_origins=["https://todo-frontend.saranobyl01.workers.dev"], # Update for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
