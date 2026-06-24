@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
-
-from routers import auth, todos, user_telegram
+from routers import auth
+from routers import todos
+from routers import user_telegram
 from reminder import reminder_daemon
 
 app = FastAPI(title="Todo App API")
