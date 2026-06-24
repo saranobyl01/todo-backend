@@ -8,7 +8,8 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 import os
 from database import get_db
-import models, schemas
+import models
+import schemas
 
 router = APIRouter(prefix="/rpc", tags=["auth"])
 
